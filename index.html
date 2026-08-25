@@ -63,9 +63,9 @@
   .section-label{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin:18px 2px 8px;}
   .section-label:first-child{margin-top:2px;}
 
-  .devo-header{text-align:center; padding:6px 0 16px;}
-  .devo-header .shopname{font-size:22px; font-weight:800; color:var(--steel-dark); letter-spacing:-0.01em;}
-  .devo-header .devo{font-size:10.5px; color:var(--muted); line-height:1.6; margin-top:4px; font-style:italic;}
+  .devo-header{text-align:center; padding:6px 0 18px;}
+  .devo-header .shopname{font-size:22px; font-weight:800; color:var(--steel-dark); letter-spacing:-0.01em; margin-top:8px;}
+  .ganpati-mark{display:flex; align-items:center; justify-content:center;}
 
   .tile-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .tile{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 12px; text-align:left; border:none; cursor:pointer; display:flex; flex-direction:column; gap:8px; min-height:88px;}
@@ -221,9 +221,8 @@
 
   .login-wrap{min-height:calc(100vh - 40px); display:flex; align-items:center; justify-content:center; padding:20px;}
   .login-card{width:100%; max-width:360px; background:#fff; border-radius:18px; box-shadow:var(--shadow); padding:26px 22px;}
-  .login-card .mark{width:52px; height:52px; border-radius:14px; background:var(--brass); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#2C1E08; margin:0 auto 14px;}
-  .login-card h2{text-align:center; margin-bottom:2px;}
-  .login-card .devo{text-align:center; font-size:10.5px; color:var(--muted); line-height:1.6; margin-bottom:20px; font-style:italic;}
+  .login-card .ganpati-mark{display:flex; align-items:center; justify-content:center; margin-bottom:10px;}
+  .login-card h2{text-align:center; margin-bottom:20px;}
 
   .user-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
   .user-row:last-child{border-bottom:none;}
@@ -260,9 +259,18 @@
   <div class="screen" id="screen-login">
     <div class="login-wrap">
       <div class="login-card">
-        <div class="mark">K</div>
+        <div class="ganpati-mark">
+          <svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="21" cy="44" rx="17" ry="21" fill="var(--brass)"/>
+            <ellipse cx="79" cy="44" rx="17" ry="21" fill="var(--brass)"/>
+            <ellipse cx="50" cy="50" rx="27" ry="25" fill="var(--brass)"/>
+            <path d="M37 27 Q50 9 63 27 Q50 19 37 27 Z" fill="var(--brass-dark)"/>
+            <circle cx="50" cy="12" r="4.5" fill="var(--brass-dark)"/>
+            <path d="M50 64 Q45 81 56 87 Q65 91 61 99" stroke="var(--brass-dark)" stroke-width="7.5" stroke-linecap="round" fill="none"/>
+            <circle cx="50" cy="47" r="3" fill="var(--steel-dark)"/>
+          </svg>
+        </div>
         <h2 id="loginTitleShop">K.P.M Store</h2>
-        <div class="devo" id="loginDevo"></div>
         <div class="field">
           <label id="lblEmail">Email</label>
           <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="username">
@@ -280,8 +288,18 @@
   <!-- DASHBOARD -->
   <div class="screen" id="screen-dashboard">
     <div class="devo-header">
+      <div class="ganpati-mark">
+        <svg width="46" height="46" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="21" cy="44" rx="17" ry="21" fill="var(--brass)"/>
+          <ellipse cx="79" cy="44" rx="17" ry="21" fill="var(--brass)"/>
+          <ellipse cx="50" cy="50" rx="27" ry="25" fill="var(--brass)"/>
+          <path d="M37 27 Q50 9 63 27 Q50 19 37 27 Z" fill="var(--brass-dark)"/>
+          <circle cx="50" cy="12" r="4.5" fill="var(--brass-dark)"/>
+          <path d="M50 64 Q45 81 56 87 Q65 91 61 99" stroke="var(--brass-dark)" stroke-width="7.5" stroke-linecap="round" fill="none"/>
+          <circle cx="50" cy="47" r="3" fill="var(--steel-dark)"/>
+        </svg>
+      </div>
       <div class="shopname" id="dashShopName">K.P.M Store</div>
-      <div class="devo" id="dashDevo"></div>
     </div>
     <div id="dashAlerts"></div>
     <div class="stat-row" id="dashStats"></div>
@@ -494,9 +512,7 @@ function applyStaticI18n(){
     el.textContent = t(el.getAttribute('data-i18n'));
   });
   document.getElementById('dashShopName').textContent = t('app_name');
-  document.getElementById('dashDevo').innerHTML = `${t('devotional1')}<br>${t('devotional2')}<br>${t('devotional3')}`;
   document.getElementById('loginTitleShop').textContent = t('app_name');
-  document.getElementById('loginDevo').innerHTML = `${t('devotional1')}<br>${t('devotional2')}<br>${t('devotional3')}`;
   document.getElementById('lblEmail').textContent = t('email');
   document.getElementById('lblPassword').textContent = t('password');
   document.getElementById('loginBtn').textContent = t('login_btn');
