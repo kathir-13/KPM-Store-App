@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>K.P.M — Rental Manager</title>
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/components.css">
+<link rel="stylesheet" href="./css/print.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- Shared Ganpati medallion, referenced by <use> wherever it appears -->
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <linearGradient id="brassGradDef" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#D9A857"/>
+      <stop offset="55%" stop-color="#B8873B"/>
+      <stop offset="100%" stop-color="#8C6427"/>
+    </linearGradient>
+    <symbol id="ganpatiMedallion" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="url(#brassGradDef)"/>
+      <circle cx="50" cy="50" r="48" fill="none" stroke="#6E4B1E" stroke-width="1.2"/>
+      <circle cx="50" cy="50" r="43.5" fill="none" stroke="#F3D9A6" stroke-width="0.8" opacity="0.55"/>
+      <g fill="#FFF8EC">
+        <path d="M21 36 C8 39 6 58 19 67 C27 72 35 68 34 59 C33 50 30 41 21 36 Z"/>
+        <path d="M79 36 C92 39 94 58 81 67 C73 72 65 68 66 59 C67 50 70 41 79 36 Z"/>
+        <path d="M50 21 C67 21 77 33 77 49 C77 61 69 69 59 71.5 L59 77 C59 79.5 57 81.5 54.5 81.5 L45.5 81.5 C43 81.5 41 79.5 41 77 L41 71.5 C31 69 23 61 23 49 C23 33 33 21 50 21 Z"/>
+        <path d="M37.5 21.5 C41.5 11 58.5 11 62.5 21.5 C56.5 17 43.5 17 37.5 21.5 Z"/>
+        <circle cx="50" cy="11" r="3"/>
+        <path d="M50 59 C45.5 66 39 68.5 39.5 76 C40 82 46 85.5 43.5 92" stroke="#FFF8EC" stroke-width="5.8" stroke-linecap="round" fill="none"/>
+      </g>
+      <circle cx="43.5" cy="47" r="1.9" fill="#6E4B1E"/>
+      <circle cx="56.5" cy="47" r="1.9" fill="#6E4B1E"/>
+      <path d="M50 33 L47.2 39 L52.8 39 Z" fill="#6E4B1E"/>
+    </symbol>
+    <!-- Reliable inline icons — no emoji/font-rendering dependency (fixes the broken logout icon) -->
+    <symbol id="icLogout" viewBox="0 0 24 24">
+      <path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M17 16l4-4-4-4M21 12H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="offlineBanner"></div>
+
+<div id="topbar" style="display:none;">
+  <div class="row">
+    <div class="left-group">
+      <button class="back-btn" id="backBtn" style="visibility:hidden;" onclick="window.kpmNav && window.kpmNav('dashboard')">‹</button>
+      <div class="screen-title" id="screenTitle">K.P.M</div>
+    </div>
+    <div class="right-group">
+      <div class="lang-toggle">
+        <button id="langEnBtn" class="active">EN</button>
+        <button id="langTaBtn">தமிழ்</button>
+      </div>
+      <button class="icon-btn" id="logoutBtn" title="Logout" aria-label="Logout">
+        <svg viewBox="0 0 24 24"><use href="#icLogout"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- LOGIN -->
+  <div class="screen active" id="screen-login">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="ganpati-mark">
+          <svg width="64" height="64" viewBox="0 0 100 100"><use href="#ganpatiMedallion"/></svg>
+        </div>
+        <h2>K.P.M</h2>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="loginError" style="color:var(--danger); font-size:var(--fs-label); font-weight:700; margin-bottom:12px; display:none;"></div>
+        <button class="btn btn-brass btn-block" id="loginBtn">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="devo-header">
+      <div class="ganpati-mark">
+        <svg width="56" height="56" viewBox="0 0 100 100"><use href="#ganpatiMedallion"/></svg>
+      </div>
+      <div class="shopname">K.P.M</div>
+    </div>
+    <div class="stat-row" id="dashStats"></div>
+    <div class="section-label">Quick Actions</div>
+    <div class="tile-grid" id="dashTiles"></div>
+  </div>
+
+  <!-- PLACEHOLDER SCREENS — filled in during their listed stage -->
+  <div class="screen" id="screen-new-rental"><div id="screen-new-rental-inner"></div></div>
+  <div class="screen" id="screen-active-rentals"><div id="screen-active-rentals-inner"></div></div>
+  <div class="screen" id="screen-edit-rental"><div id="screen-edit-rental-inner"></div></div>
+  <div class="screen" id="screen-returns"><div id="screen-returns-inner"></div></div>
+  <div class="screen" id="screen-payments"><div id="screen-payments-inner"></div></div>
+  <div class="screen" id="screen-items"><div id="screen-items-inner"></div></div>
+  <div class="screen" id="screen-transactions"><div id="screen-transactions-inner"></div></div>
+  <div class="screen" id="screen-reports"><div id="screen-reports-inner"></div></div>
+  <div class="screen" id="screen-users"><div id="screen-users-inner"></div></div>
+  <div class="screen" id="screen-settings"><div id="screen-settings-inner"></div></div>
+
+</div>
+
+<div id="bottomnav" style="display:none;">
+  <button data-screen="dashboard" onclick="window.kpmNav('dashboard')"><span class="ic">🏠</span>Home</button>
+  <button data-screen="active-rentals" onclick="window.kpmNav('active-rentals')"><span class="ic">📦</span>Rentals</button>
+  <button data-screen="new-rental" onclick="window.kpmNav('new-rental')"><span class="ic">➕</span>New</button>
+  <button data-screen="items" onclick="window.kpmNav('items')"><span class="ic">🍽️</span>Items</button>
+  <button data-screen="reports" onclick="window.kpmNav('reports')"><span class="ic">📊</span>Reports</button>
+</div>
+
+<div id="loadingOverlay">
+  <div class="box"><div class="spinner"></div><span class="msg">Loading...</span></div>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="modalRoot"></div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
