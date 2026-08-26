@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KPM — Rental Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <linearGradient id="brassGradDef" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#D9A857"/>
+      <stop offset="55%" stop-color="#B8873B"/>
+      <stop offset="100%" stop-color="#8C6427"/>
+    </linearGradient>
+    <symbol id="ganpatiMedallion" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="url(#brassGradDef)"/>
+      <circle cx="50" cy="50" r="48" fill="none" stroke="#6E4B1E" stroke-width="1.2"/>
+      <circle cx="50" cy="50" r="43.5" fill="none" stroke="#F3D9A6" stroke-width="0.8" opacity="0.55"/>
+      <g fill="#FFF8EC">
+        <path d="M21 36 C8 39 6 58 19 67 C27 72 35 68 34 59 C33 50 30 41 21 36 Z"/>
+        <path d="M79 36 C92 39 94 58 81 67 C73 72 65 68 66 59 C67 50 70 41 79 36 Z"/>
+        <path d="M50 21 C67 21 77 33 77 49 C77 61 69 69 59 71.5 L59 77 C59 79.5 57 81.5 54.5 81.5 L45.5 81.5 C43 81.5 41 79.5 41 77 L41 71.5 C31 69 23 61 23 49 C23 33 33 21 50 21 Z"/>
+        <path d="M37.5 21.5 C41.5 11 58.5 11 62.5 21.5 C56.5 17 43.5 17 37.5 21.5 Z"/>
+        <circle cx="50" cy="11" r="3"/>
+        <path d="M50 59 C45.5 66 39 68.5 39.5 76 C40 82 46 85.5 43.5 92" stroke="#FFF8EC" stroke-width="5.8" stroke-linecap="round" fill="none"/>
+      </g>
+      <circle cx="43.5" cy="47" r="1.9" fill="#6E4B1E"/>
+      <circle cx="56.5" cy="47" r="1.9" fill="#6E4B1E"/>
+      <path d="M50 33 L47.2 39 L52.8 39 Z" fill="#6E4B1E"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="offlineBanner"></div>
+<div id="topbar" style="display:none;">
+  <div class="left-group">
+    <button class="back-btn" id="backBtn" style="visibility:hidden;" onclick="goBack()">‹</button>
+    <div class="screen-title" id="screenTitle">KPM</div>
+  </div>
+  <div class="right-group">
+    <div class="lang-toggle">
+      <button id="langEnBtn" onclick="setLang('en')">EN</button>
+      <button id="langTaBtn" onclick="setLang('ta')">தமிழ்</button>
+    </div>
+    <button class="icon-btn" title="Logout" aria-label="Logout" onclick="handleLogout()">↪</button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- LOGIN -->
+  <div class="screen" id="screen-login">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="ganpati-mark">
+          <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><use href="#ganpatiMedallion"/></svg>
+        </div>
+        <h2 id="loginTitleShop">KPM</h2>
+        <div class="field">
+          <label id="lblEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="field">
+          <label id="lblPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="loginError" style="color:var(--danger); font-size:12.5px; font-weight:600; margin-bottom:10px; display:none;"></div>
+        <button class="btn btn-brass btn-block" id="loginBtn" onclick="handleLogin()">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="devo-header">
+      <div class="ganpati-mark">
+        <svg width="58" height="58" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><use href="#ganpatiMedallion"/></svg>
+      </div>
+      <div class="shopname" id="dashShopName">KPM</div>
+    </div>
+    <div id="dashAlerts"></div>
+    <div class="stat-row" id="dashStats"></div>
+    <div class="section-label" data-i18n="quick_actions">Quick Actions</div>
+    <div class="tile-grid" id="dashTiles"></div>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="screen" id="screen-items">
+    <button class="btn btn-brass btn-block" id="addItemBtn" onclick="openItemForm()">➕ Add New Item</button>
+    <div class="section-label" id="allItemsLabel">All Items</div>
+    <div id="itemsList"></div>
+  </div>
+
+  <!-- NEW RENTAL -->
+  <div class="screen" id="screen-new-rental">
+    <div class="section-label" id="step1Label">Step 1 — Select Items</div>
+    <div id="pickItemsList"></div>
+    <div class="section-label" id="step2Label">Step 2 — Customer Details</div>
+    <div class="card">
+      <div class="field">
+        <label id="lblCustName">Customer Name *</label>
+        <input type="text" id="nrName" placeholder="e.g. Murugan">
+      </div>
+      <div class="field">
+        <label id="lblMobile">Mobile Number (Optional)</label>
+        <input type="tel" id="nrMobile" placeholder="Optional 10-digit mobile" maxlength="10" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label id="lblAddress">Address / Area</label>
+        <input type="text" id="nrAddress" placeholder="Optional">
+      </div>
+      <div class="field">
+        <label id="lblNotes">Notes</label>
+        <textarea id="nrNotes" placeholder="Optional notes"></textarea>
+      </div>
+    </div>
+    <div class="total-box" id="nrTotalBox">
+      <div class="lbl" id="estAmtLbl">TOTAL AMOUNT</div>
+      <div class="val num">₹0</div>
+      <div class="sub" id="estAmtSub">Select items to see total</div>
+    </div>
+    <button class="btn btn-brass btn-block" id="reviewBtn" onclick="goToReview()">Show Bill</button>
+  </div>
+
+  <!-- REVIEW RENTAL -->
+  <div class="screen" id="screen-review">
+    <div id="reviewContent"></div>
+  </div>
+
+  <!-- ACTIVE RENTALS -->
+  <div class="screen" id="screen-active">
+    <div class="search-box">
+      <span class="ic">🔎</span>
+      <input type="text" id="activeSearch" placeholder="Search by name, mobile or bill no." oninput="renderActive()">
+    </div>
+    <div class="filter-chips" id="activeStatusChips"></div>
+    <div class="field" style="margin-bottom:12px;">
+      <input type="date" id="activeDateFilter" onchange="renderActive()">
+    </div>
+    <div id="activeList"></div>
+  </div>
+
+
+  <!-- RETURN ITEMS LIST -->
+  <div class="screen" id="screen-return-rentals">
+    <div class="search-box">
+      <span class="ic">🔎</span>
+      <input type="text" id="returnSearch" placeholder="Search by name, mobile or bill no." oninput="renderReturnRentals()">
+    </div>
+    <div class="filter-chips" id="returnStatusChips"></div>
+    <div class="field" style="margin-bottom:12px;">
+      <input type="date" id="returnDateFilter" onchange="renderReturnRentals()">
+    </div>
+    <div id="returnRentalList"></div>
+  </div>
+
+  <!-- RETURN DETAIL -->
+  <div class="screen" id="screen-return-detail">
+    <div id="returnDetailContent"></div>
+  </div>
+
+  <!-- ACTIVE RENTAL EDIT LIST -->
+  <div class="screen" id="screen-edit-rentals">
+    <div class="search-box">
+      <span class="ic">🔎</span>
+      <input type="text" id="editRentalSearch" placeholder="Search active rental" oninput="renderEditRentals()">
+    </div>
+    <div id="editRentalsList"></div>
+  </div>
+
+  <!-- ACTIVE RENTAL EDIT DETAIL -->
+  <div class="screen" id="screen-edit-rental-detail">
+    <div id="editRentalContent"></div>
+  </div>
+
+  <!-- RENTAL DETAIL (bill + payments only) -->
+  <div class="screen" id="screen-detail">
+    <div id="detailContent"></div>
+  </div>
+
+  <!-- RETURN SUMMARY -->
+  <div class="screen" id="screen-return-summary">
+    <div id="returnSummaryContent"></div>
+  </div>
+
+  <!-- ALL TRANSACTIONS -->
+  <div class="screen" id="screen-history">
+    <div class="search-box">
+      <span class="ic">🔎</span>
+      <input type="text" id="historySearch" placeholder="Search name, mobile, bill no." oninput="renderHistory()">
+    </div>
+    <div class="filter-chips" id="historyStatusChips"></div>
+    <div class="field" style="margin-bottom:8px;">
+      <input type="date" id="historyDateFilter" onchange="renderHistory()">
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="screen" id="screen-reports">
+    <div class="filter-chips" id="reportRangeChips"></div>
+    <div id="reportsContent"></div>
+  </div>
+
+  <!-- USERS -->
+  <div class="screen" id="screen-users">
+    <button class="btn btn-brass btn-block" onclick="openUserForm()">➕ Add User</button>
+    <div class="section-label">Users</div>
+    <div class="card" id="usersList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="section-label">Store / Payment Details</div>
+    <div class="card" id="shopSettingsCard"></div>
+    <div class="section-label" id="qrLabel">Payment QR Code</div>
+    <div class="card">
+      <img id="qrPreviewImg" class="qr-preview" style="display:none;">
+      <input type="file" accept="image/*" id="qrFileInput" style="display:none" onchange="handleQrUpload(event)">
+      <button class="btn btn-outline btn-block" onclick="document.getElementById('qrFileInput').click()">📷 <span id="uploadQrLbl">Upload / Change QR Image</span></button>
+    </div>
+    <div class="section-label" id="exportLabel">Export Reports (CSV)</div>
+    <div class="card">
+      <button class="btn btn-outline btn-block" style="margin-bottom:10px;" onclick="exportHistoryCsv()">📄 Rental History CSV</button>
+      <button class="btn btn-outline btn-block" onclick="exportItemsCsv()">📄 Item-wise Report CSV</button>
+    </div>
+    <div class="section-label">Account</div>
+    <div class="card">
+      <button class="btn btn-danger-outline btn-block" onclick="handleLogout()">⏻ <span id="logoutLbl2">Logout</span></button>
+    </div>
+  </div>
+
+</div>
+
+<div id="bottomnav" style="display:none;">
+  <button data-s="dashboard" onclick="nav('dashboard')"><span class="ic">🏠</span><span data-i18n="home">Home</span></button>
+  <button data-s="active" onclick="nav('active')"><span class="ic">📦</span><span data-i18n="rentals">Rentals</span></button>
+  <button data-s="new-rental" onclick="nav('new-rental')"><span class="ic">➕</span><span data-i18n="new">New</span></button>
+  <button data-s="items" onclick="nav('items')"><span class="ic">🍽️</span><span data-i18n="items">Items</span></button>
+  <button data-s="reports" onclick="nav('reports')"><span class="ic">📊</span><span data-i18n="reports">Reports</span></button>
+</div>
+
+<div id="loadingOverlay" style="display:none; position:fixed; inset:0; background:rgba(238,241,243,0.7); z-index:150; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:16px 22px; border-radius:14px; box-shadow:var(--shadow); font-weight:700; color:var(--ink-soft); font-size:13.5px;" id="loadingText">Loading...</div>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="modalRoot"></div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
