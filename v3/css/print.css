@@ -1,0 +1,6 @@
+/* Completed in Stage 5 alongside the Bill screen.
+   For now: printing anything other than a future #printArea stays hidden,
+   so an accidental Ctrl+P never prints nav/buttons. */
+@media print{
+  body *{ visibility:hidden; }
+}
